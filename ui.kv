@@ -1,0 +1,49 @@
+<MenuScreen>:
+    Button:
+        text: "Play"
+        pos_hint: {"center_x":0.5, "center_y":0.5}
+
+<GameScreen>:
+    Label:
+        canvas:
+            Color:
+                rgba: (0, 0.3, 0.4,1)
+            Rectangle: 
+                size:self.size
+                pos:self.pos
+        id:lbl_turn
+        text:"Turn: X"
+        font_size: 25
+        size_hint:[0.4,0.2]
+        pos_hint: {"x":0.05,"top":0.95}
+    Label:
+        canvas:
+            Color:
+                rgba: (0.2, 0, 0.4,1)
+            Rectangle: 
+                size:self.size
+                pos:self.pos
+        id:lbl_you
+        text: "You X"
+        font_size: 25
+        size_hint:[0.4,0.2]
+        pos_hint: {"x":0.5, "top":0.95}
+    
+    Button:
+        text: "Leave"
+        font_size: 20
+        size_hint: (0.2,0.2)
+        pos_hint: {"right":0.95, "top":0.95}
+    
+    GridLayout:
+        canvas:
+            Color:
+                rgba: (0.2, 0.3, 0.4,1)
+            Rectangle: 
+                size:self.size
+                pos:self.pos
+        size_hint_x: 0.6
+        size_hint_y: 0.4
+
+        pos_hint: {"center_x":0.5, "top":0.75}
+        id:grid_board
