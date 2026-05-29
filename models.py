@@ -1,3 +1,5 @@
+from routing import send_by_id
+
 class GameLobby:
     def __init__(self):
         self.pX = None
@@ -7,6 +9,13 @@ class GameLobby:
 
         self.board = [[None, None, None] for i in range(3)]
         self.is_finished = False
+    
+    def is_full(self):
+        return self.pX and self.pO
+    
+    def broadcast(self, msg):
+        send_by_id(self.pX, msg)
+        send_by_id(self.pO, msg)
 
     def add_player(self, player):
         if not self.pX:

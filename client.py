@@ -34,13 +34,34 @@ class Connector:
                 msg = json.loads(package.decode())
             except:
                 print(traceback.format_exc)
+    
+    def send(self, msg):
+        self.sock.sendall(json.dumps(msg).encode())
 
 class BoardCell(Button):
-    pass
+    def __init__(self, row, col, **kwargs):
+        pos = (row, col)
+        super().__init__(**kwargs)
+        self.app = App.get_running_app()
+    
+    def on_press(self):
+        msg = {
+            "type":"make_turn",
+            "pos":self.pos
+        }
+        self.app.conn.send(msg)
+        return super().on_press()
 
 class MenuScreen(Screen):
     def __init__(self, **kw):
         super().__init__(**kw)
+        self.app = App.get_running_app()
+    
+    def start_game_query(self):
+        msg = {
+            "type":"create_or_join",
+        }
+        self.app.conn.send(msg)
 
 class GameScreen(Screen):
     def __init__(self, **kw):
@@ -48,19 +69,24 @@ class GameScreen(Screen):
         board = self.ids.grid_board
         board.cols = 3
         board.rows = 3
-        for i in range(9):
-            board.add_widget(
-                BoardCell()
-            )
+        for i in range(board.rows):
+            for j in range(board.cols):
+                board.add_widget(
+                    BoardCell(i, j)
+                )
 
 class TicTacToeApp(App):
     def __init__(self, **kw):
         super().__init__(**kw)
+        self.conn = Connector()
+
 
     def build(self):
         self.sm = ScreenManager()
         
         self.game = GameScreen()
+        self.menu = MenuScreen()
+        self.sm.add_widget(self.menu)
         self.sm.add_widget(self.game)
         return self.sm
 TicTacToeApp().run()

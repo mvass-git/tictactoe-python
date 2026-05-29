@@ -47,3 +47,15 @@
 
         pos_hint: {"center_x":0.5, "top":0.75}
         id:grid_board
+
+<MenuScreen>:
+    Button:
+        pos_hint: {"center_x":0.5, "center_y":0.5}
+        text: "PLAY"
+        size_hint: (0.3, 0.15)
+        on_press: root.start_game_query()
+    Label:
+        id: menu_msg
+        pos_hint: {"center_x":0.5, "top":0.05}
+        size_hint: [1, 0.15]
+        text: ""
