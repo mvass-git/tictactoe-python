@@ -1,5 +1,6 @@
 import socket
 import threading
+import traceback
 
 from commands import commands, clients
 
@@ -16,19 +17,23 @@ sock.listen(100)
 def client_handler(client_socket, address):
     clients.append((client_socket, address))
     print(f"Client with address {address} connected.")
-    while True:
-        try:
-            pack = client_socket.recv(1024)
+    try:
+        while True:
+            
+                pack = client_socket.recv(1024)
 
-            if not pack:
-                break
-            msg = json.loads(pack.decode())
-            type = msg.get("type")
-            print(f"GOT MESSAGE from {address}: {msg}")
-            if type:
-                commands[type](address)
-        except:
-            pass
+                if not pack:
+                    break
+                msg = json.loads(pack.decode())
+                type = msg.get("type")
+                print(f"GOT MESSAGE from {address}: {msg}")
+                if type:
+                    respond = commands[type](address)
+                    client_socket.sendall(json.dumps(respond).encode())
+    except:
+        print(traceback.format_exc())
+    finally:
+         client_socket.close()
             
 
 while True:

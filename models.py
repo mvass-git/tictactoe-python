@@ -16,8 +16,24 @@ class GameLobby:
     def broadcast(self, msg):
         send_by_id(self.pX, msg)
         send_by_id(self.pO, msg)
+    
+    def start_game(self):
+        msgX = {
+            "type":"start_game",
+            "symbol":"X"
+        }
+
+        msgO = {
+            "type":"start_game",
+            "symbol":"O"
+        }
+        send_by_id(self.pX, msgX)
+        send_by_id(self.pO, msgO)
 
     def add_player(self, player):
+        if self.pX == player or self.pO == player:
+            return
+
         if not self.pX:
             self.pX = player
             return
@@ -63,6 +79,14 @@ class GameLobby:
         if self.check_winner():
             return
         self.current_p = "X" if self.current_p == "O" else "O"
+
+        self.broadcast(self.get_state())
+    
+    def get_state(self):
+        return {
+            "board":self.board,
+            "current_turn":self.current_p
+        }
         
         
 

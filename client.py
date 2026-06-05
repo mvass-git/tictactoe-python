@@ -5,6 +5,7 @@ from kivy.uix.button import Button
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
+from kivy.clock import Clock
 
 import json
 import threading
@@ -18,7 +19,8 @@ Builder.load_file("ui.kv")
 class Connector:
     HOST, PORT = "127.0.0.1", 320
 
-    def __init__(self):
+    def __init__(self, handler):
+        self.handler = handler
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((self.HOST, self.PORT))
 
@@ -32,6 +34,8 @@ class Connector:
                 break
             try:
                 msg = json.loads(package.decode())
+                mtype = msg.get("type")
+                self.handler(mtype, msg)
             except:
                 print(traceback.format_exc)
     
@@ -40,14 +44,14 @@ class Connector:
 
 class BoardCell(Button):
     def __init__(self, row, col, **kwargs):
-        pos = (row, col)
+        self.cell_pos = (row, col)
         super().__init__(**kwargs)
         self.app = App.get_running_app()
     
     def on_press(self):
         msg = {
             "type":"make_turn",
-            "pos":self.pos
+            "pos":self.cell_pos
         }
         self.app.conn.send(msg)
         return super().on_press()
@@ -62,6 +66,12 @@ class MenuScreen(Screen):
             "type":"create_or_join",
         }
         self.app.conn.send(msg)
+    
+    def update_status(self, new_status):
+        self.ids.lbl_status.text = new_status
+    
+    def go_to_game(self):
+        self.manager.current = "game"
 
 class GameScreen(Screen):
     def __init__(self, **kw):
@@ -74,19 +84,33 @@ class GameScreen(Screen):
                 board.add_widget(
                     BoardCell(i, j)
                 )
+    
+    def prepare_game(self, symbol):
+        self.ids.lbl_you.text = "you " +symbol
+    
+    def update_board(self, board):
+        for i in range(len(self.ids.grid_board.children)):
+            self.ids.grid_board.children[i] = board[len(self.ids.grid_board.children)//len(board)][len(self.ids.grid_board.children)%len(board)]
 
 class TicTacToeApp(App):
     def __init__(self, **kw):
         super().__init__(**kw)
-        self.conn = Connector()
+        self.conn = Connector(self.response_handler)
 
 
     def build(self):
         self.sm = ScreenManager()
         
-        self.game = GameScreen()
-        self.menu = MenuScreen()
+        self.game = GameScreen(name = "game")
+        self.menu = MenuScreen(name = "menu")
         self.sm.add_widget(self.menu)
         self.sm.add_widget(self.game)
         return self.sm
+    
+    def response_handler(self, mtype, msg):
+        if mtype == "wait_for_game":
+            Clock.schedule_once(lambda dt: self.menu.update_status("Wait for an opponent."))
+        if mtype == "start_game":
+            Clock.schedule_once(lambda dt: self.menu.go_to_game())
+            Clock.schedule_once(lambda dt: self.game.prepare_game(msg.get("symbol")))
 TicTacToeApp().run()

@@ -4,8 +4,13 @@ commands = {}
 lobbies = []
 clients = []
 
-def command(func):
-    def wrapper(cmd_name):
+def get_lobby_by_player_id(id):
+    for l in lobbies:
+        if l.pO == id or l.pX == id:
+            return l
+
+def command(cmd_name):
+    def wrapper(func):
         commands[cmd_name] = func
         return func
     return wrapper
@@ -16,7 +21,8 @@ def create_or_join(id):
         if l.is_full():
             continue
         l.add_player(id)
-        return {"type":"start_game"}
+        l.start_game()
+        return {"status":"ok"}
     l = GameLobby()
     l.add_player(id)
     lobbies.append(l)
