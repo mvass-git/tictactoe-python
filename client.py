@@ -17,7 +17,7 @@ from kivy.lang import Builder
 Builder.load_file("ui.kv")
 
 class Connector:
-    HOST, PORT = "127.0.0.1", 320
+    HOST, PORT = " 192.168.50.40", 320
 
     def __init__(self, handler):
         self.handler = handler
@@ -37,7 +37,7 @@ class Connector:
                 mtype = msg.get("type")
                 self.handler(mtype, msg)
             except:
-                print(traceback.format_exc)
+                print(traceback.format_exc())
     
     def send(self, msg):
         self.sock.sendall(json.dumps(msg).encode())
@@ -47,6 +47,7 @@ class BoardCell(Button):
         self.cell_pos = (row, col)
         super().__init__(**kwargs)
         self.app = App.get_running_app()
+        self.text = f"{self.cell_pos}"
     
     def on_press(self):
         msg = {
@@ -84,13 +85,28 @@ class GameScreen(Screen):
                 board.add_widget(
                     BoardCell(i, j)
                 )
+    def finish_game(self, winner):
+        app = App.get_running_app()
+        app.menu.update_status(f"Winner: {winner}")
+        self.manager.current = "menu"
+        self.leave()
+
+    def leave(self):
+        app = App.get_running_app()
+        leave_cmd = {
+            "type":"leave"
+        }
+        app.conn.send(leave_cmd)
     
     def prepare_game(self, symbol):
         self.ids.lbl_you.text = "you " +symbol
     
     def update_board(self, board):
         for i in range(len(self.ids.grid_board.children)):
-            self.ids.grid_board.children[i] = board[len(self.ids.grid_board.children)//len(board)][len(self.ids.grid_board.children)%len(board)]
+            #self.ids.grid_board.children[i] = board[len(self.ids.grid_board.children)//len(board)][i%len(board)]
+            cell = self.ids.grid_board.children[i]
+            value = board[cell.cell_pos[0]][cell.cell_pos[1]]
+            cell.text = value if value else ""
 
 class TicTacToeApp(App):
     def __init__(self, **kw):
@@ -113,4 +129,8 @@ class TicTacToeApp(App):
         if mtype == "start_game":
             Clock.schedule_once(lambda dt: self.menu.go_to_game())
             Clock.schedule_once(lambda dt: self.game.prepare_game(msg.get("symbol")))
+        if mtype == "state":
+            Clock.schedule_once(lambda dt: self.game.update_board(msg.get("board")))
+        if mtype == "finish_game":
+            Clock.schedule_once(lambda dt: self.game.finish_game(msg.get("winner")))
 TicTacToeApp().run()

@@ -28,7 +28,7 @@ def client_handler(client_socket, address):
                 type = msg.get("type")
                 print(f"GOT MESSAGE from {address}: {msg}")
                 if type:
-                    respond = commands[type](address)
+                    respond = commands[type](address, **msg)
                     client_socket.sendall(json.dumps(respond).encode())
     except:
         print(traceback.format_exc())

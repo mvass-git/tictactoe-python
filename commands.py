@@ -16,7 +16,7 @@ def command(cmd_name):
     return wrapper
 
 @command("create_or_join")
-def create_or_join(id):
+def create_or_join(id, **kwargs):
     for l in lobbies:
         if l.is_full():
             continue
@@ -29,9 +29,20 @@ def create_or_join(id):
     return {"type":"wait_for_game"}
 
 @command("make_turn")
-def make_turn(id):
-    pass
+def make_turn(id, **kwargs):
+    pos = kwargs.get("pos")
+    if not pos:
+        return
+    print("POSITION GOT: ", pos)
+    l = get_lobby_by_player_id(id)
+    if l.make_turn(id, pos):
+        return {"status":"OK"}
+    else:
+        return {"status":"Fail"}
+
+    
 
 @command("leave_lobby")
-def leave_lobby(id):
+def leave_lobby(id, **kwargs):
     pass
+    

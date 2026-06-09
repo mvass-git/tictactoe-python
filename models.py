@@ -45,15 +45,18 @@ class GameLobby:
     def check_winner(self):
         for row in self.board:
             if row[0] == row[1] and row[1] == row[2] and row[0]:
+                self.is_finished = True
                 return row[0]
         for i in range(len(self.board)):
             if (self.board[0][i] == self.board[1][i] and 
                 self.board[1][i] == self.board[2][i] 
                 and self.board[0][i]):
+                self.is_finished = True
                 return self.board[0][i]
         
         if ((self.board[0][0] == self.board[1][1] and self.board[1][1] == self.board[2][2]) or
             (self.board[0][2] == self.board[1][1] and self.board[1][1] == self.board[2][0]) and self.board[1][1]):
+            self.is_finished = True
             return self.board[1][1]
     
     def get_symbol(self, player_id):
@@ -75,15 +78,22 @@ class GameLobby:
             return
         
         self.board[row][col] = self.get_symbol(player_id)
-
-        if self.check_winner():
-            return
+        winner = self.check_winner()
+        if winner:
+            self.broadcast(self.get_state())
+            self.broadcast({
+                "type":"finish_game",
+                "winner":winner
+            })
+            return 1
         self.current_p = "X" if self.current_p == "O" else "O"
 
         self.broadcast(self.get_state())
+        return 1
     
     def get_state(self):
         return {
+            "type":"state",
             "board":self.board,
             "current_turn":self.current_p
         }
