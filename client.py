@@ -6,14 +6,22 @@ from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.label import Label
 from kivy.uix.gridlayout import GridLayout
 from kivy.clock import Clock
+from kivy.core.text import LabelBase
 
 import json
+import os
 import threading
 import socket
 
 import traceback
 
 from kivy.lang import Builder
+
+LabelBase.register(
+    name="Inter",
+    fn_regular=os.path.join("fonts", "Inter_28pt-Medium.woff2"),
+)
+
 Builder.load_file("ui.kv")
 
 class Connector:
