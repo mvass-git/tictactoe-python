@@ -1,5 +1,3 @@
-from routing import send_by_id
-
 class GameLobby:
     def __init__(self):
         self.pX = None
@@ -13,11 +11,17 @@ class GameLobby:
     def is_full(self):
         return self.pX and self.pO
     
-    def broadcast(self, msg):
-        send_by_id(self.pX, msg)
-        send_by_id(self.pO, msg)
+    def broadcast(self, msg, excluded_player=None):
+        from routing import send_by_id
+
+        if self.pX != excluded_player:
+            send_by_id(self.pX, msg)
+        if self.pO != excluded_player:
+            send_by_id(self.pO, msg)
     
     def start_game(self):
+        from routing import send_by_id
+
         msgX = {
             "type":"start_game",
             "symbol":"X"
@@ -54,10 +58,19 @@ class GameLobby:
                 self.is_finished = True
                 return self.board[0][i]
         
-        if ((self.board[0][0] == self.board[1][1] and self.board[1][1] == self.board[2][2]) or
-            (self.board[0][2] == self.board[1][1] and self.board[1][1] == self.board[2][0]) and self.board[1][1]):
+        if (((self.board[0][0] == self.board[1][1] and self.board[1][1] == self.board[2][2]) or
+            (self.board[0][2] == self.board[1][1] and self.board[1][1] == self.board[2][0]))
+            and self.board[1][1]):
             self.is_finished = True
             return self.board[1][1]
+
+    def is_draw(self):
+        for row in self.board:
+            for cell in row:
+                if not cell:
+                    return
+        self.is_finished = True
+        return 1
     
     def get_symbol(self, player_id):
         if self.pX == player_id:
@@ -84,6 +97,13 @@ class GameLobby:
             self.broadcast({
                 "type":"finish_game",
                 "winner":winner
+            })
+            return 1
+        if self.is_draw():
+            self.broadcast(self.get_state())
+            self.broadcast({
+                "type":"finish_game",
+                "winner":"Draw"
             })
             return 1
         self.current_p = "X" if self.current_p == "O" else "O"

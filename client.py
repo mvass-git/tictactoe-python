@@ -17,7 +17,7 @@ from kivy.lang import Builder
 Builder.load_file("ui.kv")
 
 class Connector:
-    HOST, PORT = " 192.168.50.40", 320
+    HOST, PORT = "localhost", 320
 
     def __init__(self, handler):
         self.handler = handler
@@ -27,27 +27,33 @@ class Connector:
         threading.Thread(target=self.receiever, daemon= True).start()
     
     def receiever(self):
+        buffer = ""
         while True:
             package = self.sock.recv(1024)
 
             if not package:
                 break
-            try:
-                msg = json.loads(package.decode())
-                mtype = msg.get("type")
-                self.handler(mtype, msg)
-            except:
-                print(traceback.format_exc())
+            buffer += package.decode()
+            while "\n" in buffer:
+                line, buffer = buffer.split("\n", 1)
+                if not line:
+                    continue
+                try:
+                    msg = json.loads(line)
+                    mtype = msg.get("type")
+                    self.handler(mtype, msg)
+                except:
+                    print(traceback.format_exc())
     
     def send(self, msg):
-        self.sock.sendall(json.dumps(msg).encode())
+        self.sock.sendall((json.dumps(msg) + "\n").encode())
 
 class BoardCell(Button):
     def __init__(self, row, col, **kwargs):
         self.cell_pos = (row, col)
         super().__init__(**kwargs)
         self.app = App.get_running_app()
-        self.text = f"{self.cell_pos}"
+        self.text = ""
     
     def on_press(self):
         msg = {
@@ -87,9 +93,12 @@ class GameScreen(Screen):
                 )
     def finish_game(self, winner):
         app = App.get_running_app()
-        app.menu.update_status(f"Winner: {winner}")
+        if winner == "Draw":
+            app.menu.update_status("Draw")
+        else:
+            app.menu.update_status(f"Winner: {winner}")
+        self.clear_board()
         self.manager.current = "menu"
-        self.leave()
 
     def leave(self):
         app = App.get_running_app()
@@ -99,9 +108,16 @@ class GameScreen(Screen):
         app.conn.send(leave_cmd)
     
     def prepare_game(self, symbol):
-        self.ids.lbl_you.text = "you " +symbol
+        self.ids.lbl_you.text = "You " +symbol
+        self.ids.lbl_turn.text = "X"
+        self.clear_board()
     
-    def update_board(self, board):
+    def clear_board(self):
+        for cell in self.ids.grid_board.children:
+            cell.text = ""
+    
+    def update_board(self, board, current_turn):
+        self.ids.lbl_turn.text = current_turn
         for i in range(len(self.ids.grid_board.children)):
             #self.ids.grid_board.children[i] = board[len(self.ids.grid_board.children)//len(board)][i%len(board)]
             cell = self.ids.grid_board.children[i]
@@ -130,7 +146,11 @@ class TicTacToeApp(App):
             Clock.schedule_once(lambda dt: self.menu.go_to_game())
             Clock.schedule_once(lambda dt: self.game.prepare_game(msg.get("symbol")))
         if mtype == "state":
-            Clock.schedule_once(lambda dt: self.game.update_board(msg.get("board")))
+            Clock.schedule_once(lambda dt: self.game.update_board(msg.get("board"), msg.get("current_turn")))
         if mtype == "finish_game":
             Clock.schedule_once(lambda dt: self.game.finish_game(msg.get("winner")))
+        if mtype == "leave_lobby":
+            Clock.schedule_once(lambda dt: self.menu.update_status(msg.get("message")))
+            Clock.schedule_once(lambda dt: self.game.clear_board())
+            Clock.schedule_once(lambda dt: setattr(self.sm, "current", "menu"))
 TicTacToeApp().run()

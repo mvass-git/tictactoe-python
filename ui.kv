@@ -1,66 +1,134 @@
-<MenuScreen>:
-    Button:
-        text: "Play"
-        pos_hint: {"center_x":0.5, "center_y":0.5}
-    Label:
-        text: "welcome!"
-        size_hint: (1, 0.1)
-        pos_hint: {"x":0, "top":0.95}
-        id:lbl_status
-
-<GameScreen>:
-    Label:
-        canvas:
-            Color:
-                rgba: (0, 0.3, 0.4,1)
-            Rectangle: 
-                size:self.size
-                pos:self.pos
-        id:lbl_turn
-        text:"Turn: X"
-        font_size: 25
-        size_hint:[0.4,0.2]
-        pos_hint: {"x":0.05,"top":0.95}
-    Label:
-        canvas:
-            Color:
-                rgba: (0.2, 0, 0.4,1)
-            Rectangle: 
-                size:self.size
-                pos:self.pos
-        id:lbl_you
-        text: "You X"
-        font_size: 25
-        size_hint:[0.4,0.2]
-        pos_hint: {"x":0.5, "top":0.95}
-    
-    Button:
-        text: "Leave"
-        font_size: 20
-        size_hint: (0.2,0.2)
-        pos_hint: {"right":0.95, "top":0.95}
-    
-    GridLayout:
-        canvas:
-            Color:
-                rgba: (0.2, 0.3, 0.4,1)
-            Rectangle: 
-                size:self.size
-                pos:self.pos
-        size_hint_x: 0.6
-        size_hint_y: 0.4
-
-        pos_hint: {"center_x":0.5, "top":0.75}
-        id:grid_board
+<Button>:
+    font_size: 24
+    background_normal: ""
+    background_color: 0, 0, 0, 0
+    color: 1, 1, 1, 1
+    canvas.before:
+        Color:
+            rgb: (0.8, 0.4, 0)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [16]
 
 <MenuScreen>:
+    canvas:
+        Color:
+            rgb: (0.72, 0.08, 0.12)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
     Button:
         pos_hint: {"center_x":0.5, "center_y":0.5}
         text: "PLAY"
         size_hint: (0.3, 0.15)
         on_press: root.start_game_query()
+
     Label:
-        id: menu_msg
-        pos_hint: {"center_x":0.5, "top":0.05}
-        size_hint: [1, 0.15]
-        text: ""
+        id: lbl_status
+        text: "Welcome!"
+        color: (1, 1, 1, 1)
+        font_size: 28
+        size_hint: (1, 0.15)
+        pos_hint: {"center_x":0.5, "top":0.22}
+
+<GameScreen>:
+    canvas:
+        Color:
+            rgb: (0.72, 0.08, 0.12)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    BoxLayout:
+        canvas.before:
+            Color:
+                rgb: (1, 0.4, 0)
+            RoundedRectangle:
+                size: self.size
+                pos: self.pos
+                radius: [0, 18, 18, 18]
+        orientation: "vertical"
+        size_hint: (0.28, 0.16)
+        pos_hint: {"center_x":0.17, "center_y":0.85}
+
+        Label:
+            color: (0, 0, 0, 1)
+            font_size: 30
+            text: "Player X"
+
+    BoxLayout:
+        canvas.before:
+            Color:
+                rgb: (1, 0.4, 0)
+            RoundedRectangle:
+                size: self.size
+                pos: self.pos
+                radius: [18, 0, 18, 18]
+        orientation: "vertical"
+        size_hint: (0.28, 0.16)
+        pos_hint: {"center_x":0.83, "center_y":0.85}
+
+        Label:
+            color: (0, 0, 0, 1)
+            font_size: 30
+            text: "Player O"
+
+    BoxLayout:
+        canvas.before:
+            Color:
+                rgb: (1, 0.4, 0)
+            RoundedRectangle:
+                size: self.size
+                pos: self.pos
+                radius: [0, 0, 18, 18]
+        size_hint: (0.24, 0.1)
+        pos_hint: {"center_x":0.5, "center_y":0.96}
+
+        Label:
+            color: (1, 1, 1, 1)
+            font_size: 28
+            text: "Turn:"
+
+        Label:
+            id: lbl_turn
+            color: (1, 1, 1, 1)
+            font_size: 34
+            text: "X"
+
+    Label:
+        canvas.before:
+            Color:
+                rgb: (0.8, 0.4, 0)
+            RoundedRectangle:
+                size: self.size
+                pos: self.pos
+                radius: [16]
+        id: lbl_you
+        text: "You X"
+        color: (1, 1, 1, 1)
+        font_size: 24
+        size_hint: (0.2, 0.07)
+        pos_hint: {"center_x":0.5, "top":0.84}
+
+    GridLayout:
+        canvas:
+            Color:
+                rgb: (0.90, 0.75, 0.60)
+            RoundedRectangle:
+                size: self.size
+                pos: self.pos
+                radius: [18]
+        id: grid_board
+        size_hint: (0.5, 0.55)
+        spacing: "15px"
+        padding: "10px"
+        pos_hint: {"center_x":0.5, "top":0.72}
+
+    Button:
+        text: "Leave"
+        font_size: 20
+        size_hint: (0.2, 0.06)
+        pos_hint: {"center_x":0.5, "top":0.1}
+        on_press: root.leave()
